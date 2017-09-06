@@ -1,0 +1,24 @@
+﻿# F4过滤文件列表
+*.log
+*.obj
+*.o
+*.d
+*.crf
+*.htm
+*.uvoptx
+*.uvguix.DELL
+#各类文本编辑器过滤
+doc\*
+bsp/stm32f40x/build/*
+#Source Insight
+*.IAB
+*.IAD
+*.IMB
+*.IMD
+*.PFI
+*.PO
+*.PR
+*PRI
+*.PS
+*.SearchResults
+*.WK3
