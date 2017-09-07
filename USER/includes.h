@@ -13,4 +13,16 @@
 #include "uart.h"
 #include "usrtConfig.h"
 #include "256160.h"
+
+
+
+
+
+
+
+
+extern OS_SEM uartSemEvent;
+extern UART_FIFO_Typedef_t uart_t;
+
+
 #endif //__INCLUDES_H__

@@ -105,4 +105,7 @@ extern uint16_t FIFO_UartReadBuffer(UART_FIFO_Typedef_t *pFIFO_Uart, uint8_t *uc
 extern void FIFO_UartSendBuffer(UART_FIFO_Typedef_t *pFIFO_Uart, uint8_t *ucBuffer, uint16_t usLen);
 extern void FIFO_UartSendByte(UART_FIFO_Typedef_t *pFIFO_Uart, uint8_t ucByte);
 extern void FIFO_UartIRQ(UART_FIFO_Typedef_t *pFIFO_Uart);
+
+
+
 #endif /* __UART_H */

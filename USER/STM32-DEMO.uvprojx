@@ -333,7 +333,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD</Define>
+              <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD,STM32_3_5</Define>
               <Undefine></Undefine>
               <IncludePath>..\CMSIS;..\USER;..\FWlib\inc;..\FWlib\src;..\APP;..\BSP;..\uCOS-III\Cfg;..\uCOS-III\Ports;..\uCOS-III\Source;..\uCOS-III\uC-CPU;..\uCOS-III\uC-LIB;..\FACE;..\Font;..\HARDWORK</IncludePath>
             </VariousControls>
@@ -413,6 +413,31 @@
               <FileName>stm32f10x_gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\FWlib\src\stm32f10x_gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>misc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWlib\src\misc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWlib\src\stm32f10x_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWlib\src\stm32f10x_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_exti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWlib\src\stm32f10x_exti.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FWlib\src\stm32f10x_flash.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -653,9 +678,38 @@
         </Group>
         <Group>
           <GroupName>HANDWORD</GroupName>
+          <Files>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWORK\uart.c</FilePath>
+            </File>
+            <File>
+              <FileName>usrtConfig.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWORK\usrtConfig.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>FACE</GroupName>
+          <Files>
+            <File>
+              <FileName>font_new.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Font\font_new.c</FilePath>
+            </File>
+            <File>
+              <FileName>uartControl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\uartControl.c</FilePath>
+            </File>
+            <File>
+              <FileName>drawFace.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FACE\drawFace.c</FilePath>
+            </File>
+          </Files>
         </Group>
         <Group>
           <GroupName>Event</GroupName>

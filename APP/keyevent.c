@@ -1,5 +1,6 @@
 #include "keyevent.h"
-
+#include "commom.h"
+#include "led.h"
 
 struct key_event head = {
 	.id = 0,
@@ -31,6 +32,7 @@ struct_key_event getFaceforId(int id)
 		}
 		temp = temp->next;
 	}
+	return NULL;
 }
 
 void sendEventforID(int id,int key)
@@ -46,7 +48,7 @@ void sendKeyEventToFace(int key)
 	if(key == 0)
 		return;
 	//从全局宏获取ID
-	int id = g_currentFace.id;
+	int id = g_currentFace->id;
 	sendEventforID(id,key);
 }
 void scanKeyEvent()

@@ -74,7 +74,7 @@
 
 
                                              /* ----------------------------- SEMAPHORES ---------------------------- */
-#define OS_CFG_SEM_EN                   0u   /* Enable (1) or Disable (0) code generation for SEMAPHORES              */
+#define OS_CFG_SEM_EN                   1u   /* Enable (1) or Disable (0) code generation for SEMAPHORES              */
 #define OS_CFG_SEM_DEL_EN               1u   /*    Include code for OSSemDel()                                        */
 #define OS_CFG_SEM_PEND_ABORT_EN        1u   /*    Include code for OSSemPendAbort()                                  */
 #define OS_CFG_SEM_SET_EN               1u   /*    Include code for OSSemSet()                                        */

@@ -20,14 +20,20 @@ void timeSet()
 /*??:1???i?*/
 void Delay_us(int s)
 {
-	setTime = s;
-	time = 0;
-	while(setTime != 0);
+//	setTime = s;
+//	time = 0;
+//	while(setTime != 0);
+	u16 i = 0;
+	while(s --)
+	{
+		i = 10;
+		while(i--);
+	}
 }
 
 void delay(int i)               
 {
-	Delay_us(100*i);
+	Delay_us(1000*i);
 }
 
 //=============transfer command to LCM===============
@@ -130,7 +136,7 @@ void initial_lcd()
 	Delay_us(100);           
 	transfer_command_lcd(0xAF);    //Display on
 }
-extern const unsigned char font16_16[][32];
+/*extern const unsigned char font16_16[][32];
 extern const unsigned char font16_16_index[];
 void draw_all(const unsigned char dp[][32])
 {
@@ -141,7 +147,7 @@ void draw_all(const unsigned char dp[][32])
 		lcd_address(x,y,16,2);
 		for(j=0;j<32;j++)
 		{
-			transfer_data_lcd(~dp[i][j]);
+			transfer_data_lcd(dp[i][j]);
 		}
 		x+=16;
 		if(x> 256)
@@ -162,17 +168,16 @@ void draw_all_zh()
 	for(int i = 0 ;i < 50 ;i ++)
 	{
 		draw_all(&font16_16[i*160]);
-		delay(100);
+		delay(1000);
 	}
 
-}
+}*/
 //-----------------------------
 void Drow_lcd()
 {									
 	
 	initial_lcd(); 									
-	clear_screen();
-	draw_all_zh();
+	clear_screen();	
 }
 
 

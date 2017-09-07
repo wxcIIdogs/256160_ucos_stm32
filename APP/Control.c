@@ -1,6 +1,6 @@
 #include "256160.h"
 #include "chinese_code.h"
-
+#include "commom.h"
 
 void lcd_address(int x,int y,int x_total,int y_total)
 {
@@ -33,22 +33,29 @@ void clear_screen()
 }
 
 
-static int size_count = 16;
+
 void disp_clean(int x,int y,int len,int count)
 {
 	int j;	
-	lcd_address(x,y,size_count*len,count);
+	lcd_address(x,y,16*len,count);
 	for(int i = 0 ; i < len ; i++)
 	{		
 		for(int k = 0; k < count ; k ++)
 		{
-			for(j=0;j<size_count;j++)
+			for(j=0;j<16;j++)
 			{
 				transfer_data_lcd(0x00);
 			}
 		}
 	}
 }
+
+static int currentX = 1;
+static int currentY = 1;
+static int blackColor = BACK_WHITE;
+static int size_count = 16;
+
+
 void setXLen_8_char()
 {
 	size_count = 8;
@@ -98,19 +105,17 @@ void disp_16x16_zh(int x,int y, uchar dp[][32],int len,int flag)
 	}
 
 }
-static int currentX = 1;
-static int currentY = 1;
+
 void setIndex()
 {
 	if(currentX > 256)
 	{
-		//currentX = 1;
+		currentX = 1;
 		if((currentY+=2) > 21)
 		{
-			//currentY = 1;
+			currentY = 1;
 		}
 	}
-
 }
 
 int getZhIndex(unsigned char *data,int flag)
@@ -125,6 +130,7 @@ int getZhIndex(unsigned char *data,int flag)
 	}
 	return 1;
 }
+extern const unsigned char font16_16[][32];
 int getZHdisDp(unsigned char *data,uchar dp[][32])
 {
 	int index = 0;
@@ -140,7 +146,7 @@ void disp_hz(uchar *data)
 {
 	uchar dp[20][32];
 	int len = getZHdisDp(data,dp);
-	disp_16x16_zh(currentX,currentY,dp,len,1);
+	disp_16x16_zh(currentX,currentY,dp,len,blackColor);
 }
 void setCurrentIndex(int x,int y)
 {
@@ -148,7 +154,10 @@ void setCurrentIndex(int x,int y)
  	currentY = y;
 }
 
-
+void setBackColor(int index)
+{
+	blackColor = index;
+}
 
 int fputc(int ch, FILE *f)
 {
@@ -160,7 +169,7 @@ int fputc(int ch, FILE *f)
 	{
 		uchar dp[8];
 		memcpy(dp,CHAR_4x16[ch-' '],8);
-		disp_8x16_num(currentX,currentY,dp,1);
+		disp_8x16_num(currentX,currentY,dp,blackColor);
 		currentX += CHAR_COUNT;
 	}
 	if(prochar != 0)
@@ -183,5 +192,34 @@ int fputc(int ch, FILE *f)
 }
 
 
+FACE_ENUM Draw_face(int index)
+{
+	FACE_ENUM menu = faceNull;
+	if(g_arrayface == &g_headFace)
+	{
+		index = MAINMENU;
+	}
+	if(index == faceNull)
+	{//后退到上级
+		menu = g_currentFace->func(&g_node,g_currentFace);		
+		g_currentFace->data = NULL;
+		g_currentFace->list->next = NULL;
+		g_currentFace = g_currentFace->list->pro;	
+	}
+	else
+	{//进入某个界面
+		g_currentFace->list->next = &g_arrayface[index];
+		g_arrayface[index].list->pro = g_currentFace;
+		g_currentFace = &g_arrayface[index];
+
+		menu = g_currentFace->func(&g_node,g_currentFace);
+
+		g_currentFace->data = NULL;
+		g_currentFace->list->next = NULL;
+		g_currentFace = g_currentFace->list->pro;	
+	}
+	
+	return menu;
+}
 
 

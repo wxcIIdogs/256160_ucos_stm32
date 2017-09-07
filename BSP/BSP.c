@@ -32,12 +32,12 @@ void BSP_Init(void)
 	OS_ERR err;
 
 
- 	SysTick_init();
-    LED_GPIO_Config();  /* LED 端口初始化 */
-    USART2_Config();
-    FIFO_UartVarInit(&uart_t,USART2,pxbuff,prbuff,SIZE_SERIAL,SIZE_SERIAL,NULL,NULL,callback_rev_data);
-	Drow_lcd();
-
+  
+  LED_GPIO_Config();  /* LED 端口初始化 */
+  USART2_Config();    /* LED 串口初始化 */
+  FIFO_UartVarInit(&uart_t,USART2,pxbuff,prbuff,SIZE_SERIAL,SIZE_SERIAL,NULL,NULL,NULL);   /* 串口FIFO初始化 */
+	Drow_lcd();     /* 画图，初始化显示屏 */
+	SysTick_init();
 //淇″彿閲忓垵濮嬪寲
 	OSSemCreate(&uartSemEvent,"uartSem",1,&err);
 
@@ -52,7 +52,7 @@ void BSP_Init(void)
  */
 void SysTick_init(void)
 {
-    SysTick_Config(SystemCoreClock/OS_CFG_TICK_RATE_HZ);//初始化并使能SysTick定时器
+  SysTick_Config(SystemCoreClock/OS_CFG_TICK_RATE_HZ);//初始化并使能SysTick定时器
 	if (SysTick_Config(SystemCoreClock/OS_CFG_TICK_RATE_HZ))	// ST3.5.0库版本
 	{ 
 		/* Capture error */ 

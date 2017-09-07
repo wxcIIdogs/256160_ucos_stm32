@@ -6,9 +6,10 @@
 
 #include "stdlib.h"
 #include "stdio.h"
-#include "measure.h"
-#include "MeterArea.h"
-#include "common.h"
+
+//#include "measure.h"
+//#include "MeterArea.h"
+
 #define X_HRAD  (256-15)
 #define X_TILE  (-16)
 #define COUNT32 4
@@ -21,7 +22,7 @@
 #define uint unsigned int
 	
 
-
+#define ARRAY(__X__)    (sizeof(__X__)/sizeof(__X__[0]))
 
 
 
@@ -39,6 +40,7 @@ extern void clear_screen(void);
 extern void Drow_lcd(void );
 
 extern void setCurrentIndex(int x,int y);
+extern void setBackColor(int index);
 
 
 #endif

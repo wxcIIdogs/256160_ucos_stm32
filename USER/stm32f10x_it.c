@@ -23,7 +23,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "includes.h"
-
+#include "uart.h"
 /** @addtogroup STM32F10x_StdPeriph_Template
   * @{
   */
@@ -142,7 +142,7 @@ void USART2_IRQHandler()
   * @param  None
   * @retval None
   */
-extern void timeSet();
+extern void timeSet(void);
 void SysTick_Handler(void)
 {
 	OSIntEnter(); 	 //用于统计中断的嵌套层数，对嵌套层数+1

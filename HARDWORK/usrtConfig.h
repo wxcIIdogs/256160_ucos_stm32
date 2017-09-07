@@ -13,4 +13,6 @@
  void setBaudRate_Usart1(uint32_t buad);
  void sendUsartDate(char *date,int size);
  void setUSART1Enable(int flag);
+
+
 #endif /* __USARTCONFIG_H */
