@@ -1,6 +1,6 @@
 #include "commom.h"
-
-
+#include "drawFace.h"
+#include "drawSysSet.h"
 
 
 void updateInfoData()
@@ -43,11 +43,11 @@ structMenu parcelSurvey[] =
 	{1,"面积:%c%.3lf亩",0,0,2,7,0},
 	{2,"最高:%c%.3lf米",0,0,2,9,0},
 	{3,"平均:%c%.3lf米",0,0,2,11,0},
-	{4,"当前:%c%.3lf米",0,0,2,16,0},
+	{4,"当前:%c%.3lf米",0,0,2,13,0},
 	{5,"周长:%c%.3lf米",0,0,140,7,0},
 	{6,"最低:%c%.3lf米",0,0,140,9,0},
 	{7,"土方:%c%.3lf方",0,0,140,11,0},
-	{8,"距离:%c%.3lf米",0,0,140,16,0},
+	{8,"距离:%c%.3lf米",0,0,140,13,0},
 };
 //做平面
 structMenu planeMenu[] = 
@@ -74,14 +74,14 @@ structMenu xieMenu[] =
 //测量数据
 structMenu meauseData[] = 
 {
-	{1,"编号:%.3d",0,0,2,4,0},
+	{1,"编号:%03d",0,0,2,4,0},
 	{2,"面积:%d亩",0,0,2,6,0},
 	{3,"周长:%d亩",0,0,2,8,0},
-	{4,"定高:%d亩",0,0,2,10,0},
-	{5,"时间:%d-%02d-%02d %02d:%02d",0,0,90,4,0},
+	{4,"定高:%.2d亩",0,0,2,10,0},
+	{5,"时间:",0,0,90,4,0},//%d-%02d-%02d %02d:%02d
 	{6,"土方计算:%.0lf方",0,0,106,6,0},
 	{7,"起点距离:%.0lf米",0,0,106,8,0},	
-	{8,"高/低:%.2lf/%.2lf",0,0,106,10,0},
+	{8,"高/低:",0,0,106,10,0},//%.2lf/%.2lf"
 };
 
 struct list_pro list[22] = {0};
@@ -90,24 +90,24 @@ structFaceInfo g_arrayface[] =
 	//id   ishead   title  list     func   facemenu          void *data
 	
 	{1 , 1 , "冰河导航平地机" ,  &list[1]  ,  draw_main_face ,  mainMenu  ,6 ,  NULL} ,   //1
-	{2 , 1 , "系统设置" ,       &list[2]  ,  NULL  ,  sysSet  , 9 , NULL} , //2
-	{3 , 1 , "地块测量" ,       &list[3]  ,  NULL  ,  parcelSurvey  ,8 , NULL} , //3
-	{4 , 1 , "做平面" ,         &list[4] , NULL , planeMenu ,  7, NULL} , //4
-	{5 , 1 , "做斜面" ,         &list[5] , NULL , xieMenu , 7,NULL} , //5
-	{6 , 1 , "测量数据" ,       &list[6] , NULL , meauseData , 8 , NULL} , //6
-	{7 , 1 , "设置平面高度" ,   &list[7] , NULL , NULL ,0 ,  NULL} , //7
-	{8 , 1 , "设置斜面起点" ,   &list[8] , NULL , NULL ,0 , NULL} , //8
-	{9 , 1 , "设置斜面终点" ,   &list[9] , NULL , NULL , 0 ,NULL} , //9
-	{10 , 1 , "卫星信号" ,      &list[10] , NULL , NULL , 0 ,NULL} , //10
-	{11 , 1 , "度量单位" ,      &list[11] , NULL , NULL ,0 , NULL} , //11
-	{12 , 1 , "电台频道" ,      &list[12] , NULL , NULL ,0 , NULL} , //12
-	{13 , 1 , "铲斗宽度" ,      &list[13] , NULL , NULL ,0 , NULL} , //13
-	{14 , 1 , "天线位置" ,      &list[14] , NULL , NULL ,0 , NULL} , //14
-	{15 , 1 , "升降校准" ,      &list[15] , NULL , NULL ,0 , NULL} , //15
-	{16 , 1 , "时间设置" ,      &list[16] , NULL , NULL ,0 , NULL} , //16
-	{17 , 1 , "语言选择" ,      &list[17] , NULL , NULL ,0 , NULL} , //17
-	{18 , 1 , "清空内存" ,      &list[18] , NULL , NULL ,0 , NULL} , //18
-	{19 , 1 , "有关本机" ,      &list[19] , NULL , NULL ,0 , NULL} , //19
+	{2 , 1 , "系统设置" ,       &list[2]  ,  draw_sysSet_face  ,  sysSet  , 9 , NULL} , //2
+	{3 , 1 , "地块测量" ,       &list[3]  ,  draw_parcelSurvey_face  ,  parcelSurvey  ,8 , NULL} , //3
+	{4 , 1 , "做平面" ,         &list[4] , draw_planeMenu_face , planeMenu ,  7, NULL} , //4
+	{5 , 1 , "做斜面" ,         &list[5] , draw_xieMenu_face , xieMenu , 7,NULL} , //5
+	{6 , 0 , "测量数据" ,       &list[6] , draw_meauseData_face , meauseData , 8 , NULL} , //6
+	{7 , 1 , "设置平面高度" ,   &list[7] , draw_setPlaneHigh_face , NULL ,0 ,  NULL} , //7
+	{8 , 1 , "设置斜面起点" ,   &list[8] , draw_setXieHigh_face , NULL ,0 , NULL} , //8
+	{9 , 1 , "设置斜面终点" ,   &list[9] , draw_setEndXieHigh_face , NULL , 0 ,NULL} , //9
+	{10 , 1 , "卫星信号" ,      &list[10] , draw_setStat_face , NULL , 0 ,NULL} , //10
+	{11 , 1 , "度量单位" ,      &list[11] , draw_unitmeasure_face , NULL ,0 , NULL} , //11
+	{12 , 1 , "电台频道" ,      &list[12] , draw_boardchannel_face , NULL ,0 , NULL} , //12
+	{13 , 1 , "铲斗宽度" ,      &list[13] , draw_bucketwidght_face , NULL ,0 , NULL} , //13
+	{14 , 1 , "天线位置" ,      &list[14] , draw_antlocal_face , NULL ,0 , NULL} , //14
+	{15 , 1 , "升降校准" ,      &list[15] , draw_roisedownadj_face , NULL ,0 , NULL} , //15
+	{16 , 1 , "时间设置" ,      &list[16] , draw_timeset_face , NULL ,0 , NULL} , //16
+	{17 , 1 , "语言选择" ,      &list[17] , draw_langselect_face , NULL ,0 , NULL} , //17
+	{18 , 1 , "清空内存" ,      &list[18] , draw_cleanmem_face , NULL ,0 , NULL} , //18
+	{19 , 1 , "有关本机" ,      &list[19] , draw_about_face , NULL ,0 , NULL} , //19
 };
 
 

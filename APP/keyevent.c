@@ -2,7 +2,7 @@
 #include "commom.h"
 #include "led.h"
 
-struct key_event head = {
+struct key_event_t head = {
 	.id = 0,
 	.func = NULL,
 	.next = NULL,
@@ -13,7 +13,7 @@ static struct_key_event localPoint = &head;
 
 void register_key_event(int id,void *func,int flag)
 {
-	struct_key_event temp = (struct_key_event)malloc(sizeof(struct key_event));
+	struct_key_event temp = (struct_key_event)malloc(sizeof(struct key_event_t));
 	temp->func = (key_evnet_func)func;
 	temp->id = id;
 	temp->keymark = flag;
@@ -21,6 +21,7 @@ void register_key_event(int id,void *func,int flag)
 	localPoint = temp;
 	localPoint->next = NULL;
 }
+
 struct_key_event getFaceforId(int id)
 {
 	struct_key_event temp = &head;

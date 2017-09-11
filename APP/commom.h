@@ -7,6 +7,17 @@
 #define BACK_WHITE   1
 #define BACK_BLACK   0
 
+
+#define SOLQ_NONE 0   /* solution status: no solution */
+#define SOLQ_FIX 1    /* solution status: fix */
+#define SOLQ_FLOAT 2  /* solution status: float */
+#define SOLQ_SBAS 3   /* solution status: SBAS */
+#define SOLQ_DGPS 4   /* solution status: DGPS/DGNSS */
+#define SOLQ_SINGLE 5 /* solution status: single */
+#define SOLQ_PPP 6    /* solution status: PPP */
+#define SOLQ_DR 7     /* solution status: dead reconing */
+#define MAXSOLQ 7     /* max number of solution status */
+
 typedef enum
 {
 	KEY_ENTER = 0x01,
@@ -28,7 +39,12 @@ typedef struct flash_info
 //存放一些系统数据
 typedef struct inode
 {
-	void *data;
+	long time;
+	int stat;
+	int delayTime;
+	int Channel;
+	int fixMode;	
+	void *data;	
 }Inode;
 
 typedef struct list_pro
@@ -89,6 +105,23 @@ typedef struct face_info
 }structFaceInfo;
 
 
+typedef struct _structCeData
+{
+	double id;
+	double zhouc;
+	double dhigh;
+	
+	int year;
+	int mon;	
+	int day;
+	int hour;
+	int min;
+	
+	double tufl;
+	double dis;
+	double high;
+	double low;
+}structCeData;
 
 
 
@@ -98,10 +131,24 @@ extern FlashInfo g_initFlashStruct;
 extern structFaceInfo *g_currentFace;
 extern structFaceInfo g_headFace;
 
+extern void main_menu_keyEvent(int id,int event);
+extern void draw_menu(structFaceInfo *info);
+extern void draw_menu_cedata(structFaceInfo *info,int index,structCeData *data);
+extern int getLocalId(void);
+extern void setMenuLen(int len);
+extern int getEndflag(void);
+extern void draw_line_y(int y);
 
-extern void register_key_event(int id,void *func,int flag);
+extern void draw_title(void );
+
 extern FACE_ENUM Draw_face(int index);
-FACE_ENUM draw_main_face(Inode *node, structFaceInfo *info);
+extern void setLocalId(int id);
+
+extern void draw_set_menu(u8 temp[][30],int len);
+extern void draw_set_num_menu(double num,int flag ,int x,int y);
+extern void draw_set_low_title_menu(u8 *title,int x,int y);
+extern void draw_StatTitle_menu(int gps,int beid,int glonass);
+extern void draw_stat_stren_num_menu(int index,int len,int x,int y);
 
 #endif
 

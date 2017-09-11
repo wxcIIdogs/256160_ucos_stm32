@@ -163,7 +163,7 @@ void Task_face(void *p_arg)
 	OS_ERR err;
  	(void)p_arg;      
 	FACE_ENUM index;
-	index = Draw_face(MAINMENU);
+	index = Draw_face(ABOUT);
 	while (1)
 	{	 	        	    
 		index = Draw_face(index);    	

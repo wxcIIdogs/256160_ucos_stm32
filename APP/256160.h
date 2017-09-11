@@ -42,6 +42,7 @@ extern void Drow_lcd(void );
 extern void setCurrentIndex(int x,int y);
 extern void setBackColor(int index);
 
+extern void draw_line_stat_sign(int stren);
 
 #endif
 

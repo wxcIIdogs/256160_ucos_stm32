@@ -709,6 +709,11 @@
               <FileType>1</FileType>
               <FilePath>..\FACE\drawFace.c</FilePath>
             </File>
+            <File>
+              <FileName>drawSysSet.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FACE\drawSysSet.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

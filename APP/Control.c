@@ -2,6 +2,11 @@
 #include "chinese_code.h"
 #include "commom.h"
 
+static int currentX = 1;
+static int currentY = 1;
+static int blackColor = BACK_WHITE;
+static int size_count = 16;
+
 void lcd_address(int x,int y,int x_total,int y_total)
 {
 	x=x-1;
@@ -37,12 +42,12 @@ void clear_screen()
 void disp_clean(int x,int y,int len,int count)
 {
 	int j;	
-	lcd_address(x,y,16*len,count);
+	lcd_address(x,y,size_count*len,count);
 	for(int i = 0 ; i < len ; i++)
 	{		
 		for(int k = 0; k < count ; k ++)
 		{
-			for(j=0;j<16;j++)
+			for(j=0;j<size_count;j++)
 			{
 				transfer_data_lcd(0x00);
 			}
@@ -50,10 +55,6 @@ void disp_clean(int x,int y,int len,int count)
 	}
 }
 
-static int currentX = 1;
-static int currentY = 1;
-static int blackColor = BACK_WHITE;
-static int size_count = 16;
 
 
 void setXLen_8_char()
@@ -70,8 +71,8 @@ void disp_8x16_num(int x, int y, uchar *dp,int flag)
 	disp_clean(x,y,1,2);  //清除一个空格空间
 	setXLen_16_ZH();	  //还原
 
-	lcd_address(x,y,CHAR_COUNT/2,2);
-	for(int i = 0; i < 8 ; i ++)
+	lcd_address(x,y,CHAR_COUNT,2);
+	for(int i = 0; i < 16 ; i ++)
 	{
 		if(flag == 1)
 		{
@@ -167,14 +168,14 @@ int fputc(int ch, FILE *f)
 	static char prochar = 0;
 	if(ch >= 0x20 && ch <= 0x7E)
 	{
-		uchar dp[8];
-		memcpy(dp,CHAR_4x16[ch-' '],8);
+		uchar dp[16];
+		memcpy(dp,CHAR_4x16[ch-0x20],16);
 		disp_8x16_num(currentX,currentY,dp,blackColor);
 		currentX += CHAR_COUNT;
 	}
 	if(prochar != 0)
 	{
-		uchar data[2] = {prochar,(char )ch};		
+		uchar data[3] = {prochar,(char )ch,'\0'};		
 		disp_hz(data);
 		currentX += CHINA_COUNT;
 		prochar = 0;
@@ -220,6 +221,32 @@ FACE_ENUM Draw_face(int index)
 	}
 	
 	return menu;
+}
+
+const uchar lintArray[] = {0x08,0x08,0x08,0x08,0x08,0x08,0x08,0x08};
+
+void draw_line_y(int y)
+{
+	for(int j = 1; j < 256 ; j+=8)
+	{
+		lcd_address(j,y,CHAR_COUNT,1);
+		for(int i = 0; i < 8 ; i ++)
+		{
+			transfer_data_lcd(lintArray[i]);			
+		}
+	}
+}
+
+void draw_line_stat_sign(int stren)
+{
+	lcd_address(currentX,currentY,stren,2);
+	for(int j = 0; j < stren ; j++)
+	{		
+		for(int i = 0; i < 16 ; i ++)
+		{
+			transfer_data_lcd(0xff);			
+		}
+	}
 }
 
 

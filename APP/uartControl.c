@@ -14,3 +14,4 @@ void callback_rev_data(u8 ch)
 {
 	input_ublox(ch);
 }
+
