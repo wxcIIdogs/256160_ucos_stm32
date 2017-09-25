@@ -3,32 +3,196 @@
 #include "256160.h"
 #include "drawFace.h"
 #include "includes.h"
+#include "math.h"
+#include "calcuFace.h"
+#include "flash.h"
+#include <math.h>
+#include "MeterArea.h"
+static double g_arrNum[10] = {0};
+static char g_strNum[10][10];
+
+void clean_arrarNum()
+{
+	memset(g_arrNum,0,sizeof(g_arrNum));
+	for(int i= 0 ; i < 10; i ++)
+	{
+		memset(g_strNum[i],0,sizeof(g_strNum[i]));
+	}
+}
 FACE_ENUM getIDEnum(structFaceInfo *info)
 {
 	return (FACE_ENUM)info->menu[getLocalId()].id;
 }
-//ä¸»ç•Œé¢
+//Ö÷½çÃæ
+int get_num_len(double num)
+{
+	char temp[20] = {0};
+	sprintf(temp,"%.3lf",num);
+	return strlen((char *)temp);
+}
+int operation_index = 0;
+
+void operation_key_change(int len,FACE_ENUM enterEnum,int event,uchar arrSet[][30])
+{
+	int listLen = len;
+	static double addNum = 1;
+	static int enterFlag = 0;
+	static int addindex = -1;
+	int numLen = get_num_len(g_arrNum[operation_index]);
+	int zhNumLen = numLen -4;
+	if(event & KEY_CANCEL)
+	{		
+		if(enterFlag)
+		{
+			enterFlag = 0;			
+			addindex = -1;
+			addNum = 1;
+		}
+		else
+		{
+			operation_index = 0;			
+			stop_parcelSurvey();
+			setReturnFACE_ENUM(g_currentFace->list->pro->id);
+			return ;			
+		}
+	}
+	if(event & KEY_ENTER)
+	{
+		if(enterFlag)
+		{
+			enterFlag = 0;			
+			addindex = -1;
+			addNum = 1;
+			
+		}
+		else
+		{
+			operation_index = 0;
+			setReturnFACE_ENUM(enterEnum + 1);
+			return ;
+		}
+		
+	}
+	if(event & KEY_TOP)
+	{
+		if(enterFlag == 1)
+		{
+			g_arrNum[operation_index] += addNum;
+			if(g_arrNum[operation_index] > 10)
+			{
+				g_arrNum[operation_index] --;
+			}
+		}
+		else
+		{
+			operation_index --;
+			if(operation_index < 0)
+				operation_index = listLen -1;					
+		}
+
+	}
+	if(event & KEY_BOTTON)
+	{
+		if(enterFlag == 1)
+		{
+			g_arrNum[operation_index] -= addNum;
+			if(g_arrNum[operation_index] < 0 )
+			{
+				g_arrNum[operation_index] ++;
+			}
+		}
+		else
+		{
+			operation_index ++;
+			if(operation_index == listLen)
+				operation_index = 0;
+		}
+		
+	}
+	if(event & KEY_RIGHT)
+	{
+		if(enterFlag == 0)
+		{
+			enterFlag = 1;
+			addindex = 1;
+			addNum =  pow(10,zhNumLen-1);
+		}
+		else
+		{
+			if(++addindex == zhNumLen+1)
+			{
+				addindex++;
+			}
+			if(addindex >numLen)
+			{
+				addindex = numLen;
+			}
+			addNum/=10;
+			if(addNum < 0.001)
+			{
+				addNum = 0.001;
+			}
+		}
+	}
+	if(event & KEY_LEFT && enterFlag)
+	{
+		if(--addindex == zhNumLen+1)
+		{
+			addindex--;
+		}
+		if(addindex == 0)
+		{
+			addindex = 1;
+		}
+		addNum *=10;
+		if(addNum >pow(10,zhNumLen-1))
+		{
+			addNum = pow(10,zhNumLen-1);
+		}
+	}
+	for(int i = 0 ; i < len ; i ++)
+	{
+		sprintf(g_strNum[i],"%+.3lf%s",g_arrNum[i]*g_len_unit_num,g_len_unit);		
+	}
+	draw_show_num_menu(operation_index,g_strNum,addindex,arrSet,len);
+}
+
+void main_key(int id,int event)
+{
+	if(event & KEY_ENTER)
+	{
+		setReturnFACE_ENUM(getIDEnum(g_currentFace));
+		return ;
+	}
+	draw_menu(g_currentFace);
+	if(event == KEY_TOP)
+	{
+		char buff[100];
+		sprintf(buff,"$ICEGPS,CONNECT,1");
+		sendIcegpsData(buff);
+		sprintf(buff,"$ICEGPS,GETRADIO");
+		sendIcegpsData(buff);
+	}
+}
 FACE_ENUM draw_main_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	register_key_event(info->id , main_menu_keyEvent, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
+	FACE_ENUM rec = faceNull;	
+	register_key_event(info->id , main_key, KEY_ALL & ~(KEY_CANCEL));   //æ³¨å†ŒæŒ‰é”®
 
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
+		draw_title();  //æ˜¾ç¤ºå¼€å¤?
 	}	
+	draw_title_data_menu("±ùºÓµ¼º½PD110",32,4);
+	setLocalId(0);
 	draw_menu(info);
 	while(1)
-	{
-		
-		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
+	{		
+		OSTimeDlyHMSM(0, 0,0,50,OS_OPT_TIME_HMSM_STRICT,&err);
+		if((rec = getReturnFACE_ENUM()) < faceNull)
 		{
-			return MAINMENU;
-		}
-		if(getEndflag() & KEY_ENTER)
-		{
-			return getIDEnum(info);
+			return rec;
 		}
 	}	
 }
@@ -36,298 +200,501 @@ FACE_ENUM draw_main_face(Inode *node, structFaceInfo *info)
 
 
 
-//ç³»ç»Ÿè®¾ç½®
+//ÏµÍ³ÉèÖÃ
+
+void sysSet_key(int id,int event)
+{
+	if(event & KEY_CANCEL)
+	{
+		setReturnFACE_ENUM(g_currentFace->list->pro->id);
+		return ;		
+	}
+	if(event & KEY_ENTER)
+	{
+		setReturnFACE_ENUM(getIDEnum(g_currentFace));	
+		return ;		
+	}
+	draw_menu(g_currentFace);
+}
+
 FACE_ENUM draw_sysSet_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	register_key_event(info->id , main_menu_keyEvent, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
+	FACE_ENUM rec = faceNull;
+	register_key_event(info->id , sysSet_key, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
 
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
+		draw_title();  //æ˜¾ç¤ºå¼€å¤?
 	}	
+	setLocalId(0);	
+	draw_title_data_menu("ÏµÍ³ÉèÖÃ",60,4);
 	draw_menu(info);
 	while(1)
 	{
 		
 		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
+		if((rec = getReturnFACE_ENUM()) < faceNull)
 		{
-			return MAINMENU;
+			return rec;
 		}
-		if(getEndflag() & KEY_ENTER)
-		{
-			return getIDEnum(info);
-		}
+		
 	}		
 }
 
 
-////åœ°å—æµ‹é‡
+////µØ¿é²âÁ¿
+int g_enterCount = 0;
+OS_TMR timer;
+char arryParcel[][100] = 
+{
+{"Çë¿ªµ½µØ¿é±ßÔµ£¬°´È·¶¨¼ü¿ªÊ¼²âÁ¿"},
+{"¿ªÊ¼²âÁ¿£¬Çë½«²ù¶·½µµÍµ½µØÃæÈ»ºó°´È·¶¨¼ü¼ÌĞø"},
+{"ÕıÔÚ¼ÆËãÆğµãµØÃæ¸ß¶È£¬ÇëÎğµ÷Õû²ù¶·"},
+{"Æğµã¸ß¶È¼ÆËãÍê±Ï£¬Çë½«²ù¶·Éı¸ßµ½×î¸ßÈ»ºó°´È·ÈÏ¼ü¼ÌĞø"},
+{"ÕıÔÚ¼ÆËã²ù¶·ÉÏÉı¸ß¶È£¬ÇëÎğµ÷Õû²ù¶·"},
+{"²ù¶·ÉÏÉı¸ß¶È¼ÆËãÍê±Ï£¬Çë¿ª³µÈÆµØÒ»ÖÜ½øĞĞ²âÁ¿£¬°´È·ÈÏ¼ü¿ªÊ¼"},
+{"µØ¿é²âÁ¿ÖĞ£¬»Øµ½ÆğµãÖ®ºóÇë°´È·¶¨¼ü½áÊø"},
+{"µØ¿é²âÁ¿Íê±Ï"},
+};
+void parcelSurvey_print(char *data)
+{
+	disp_clean(1,16,16,4);
+	setCurrentIndex(1,16);
+	printf("%s",data);
+}
+void parcelSurvey_key(int id,int event)
+{
+	if(event & KEY_CANCEL)
+	{			
+		setReturnFACE_ENUM(g_currentFace->list->pro->id);
+		stop_parcelSurvey();
+		g_enterCount = 0;
+		return ;		
+	}
+	if(event & KEY_ENTER)
+	{
+
+		g_enterCount ++;
+		if(g_enterCount == 1)
+		{//»ñÈ¡×îµÍ¸ß¶È
+			
+		}
+		else if(g_enterCount == 3)
+		{//»ñÈ¡Æğµã¸ß¶È
+		
+		}
+		else if(g_enterCount == 5)
+		{//¿ªÊ¼²âÁ¿
+		
+		}
+		else if(g_enterCount == 6)
+		{//½áÊø²âÁ¿
+		
+			setReturnFACE_ENUM(g_currentFace->list->pro->id);
+			stop_parcelSurvey();		
+			return ;
+		}
+		//save
+		
+	}
+	parcelSurvey_print(arryParcel[g_enterCount]);
+}
+void timerUpdataInfo(void *p_tmr, void *p_arg)
+{
+	structFaceInfo *info = (structFaceInfo *)p_arg;
+	updata_parcelSurvey(&g_node,info);		
+}
 FACE_ENUM draw_parcelSurvey_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	register_key_event(info->id , main_menu_keyEvent, KEY_CANCEL);   //æ³¨å†ŒæŒ‰é”®
+	FACE_ENUM rec = faceNull;
+	register_key_event(info->id , parcelSurvey_key, KEY_CANCEL);   //æ³¨å†ŒæŒ‰é”®
 
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
+		draw_title();  //æ˜¾ç¤ºå¼€å¤?
 	}	
+	draw_title_data_menu("µØ¿é²âÁ¿",60,4);
 	setLocalId(-1);
 	draw_menu(info);
+	init_parcelSurvey();
+	//´´½¨¶¨Ê±Æ÷£¬¶¨Ê±Ë¢ĞÂÊı¾İ
+	OSTmrCreate(&timer,"updata",100,100,OS_OPT_TMR_PERIODIC ,timerUpdataInfo,info,&err); 
+
+	parcelSurvey_key(0,0);
 	while(1)
 	{
-		
-		
 		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
-		{			
-			return (FACE_ENUM)g_currentFace->list->pro->id;
+		if((rec = getReturnFACE_ENUM()) < faceNull)
+		{
+			OSTmrDel(&timer,&err);
+			return rec;
 		}
 	}	
 }
-//åšå¹³é¢
+
+//×öÆ½Ãæ
+
+void planeMenu_key(int id,int event)
+{
+
+	if(event & KEY_CANCEL)
+	{			
+		setReturnFACE_ENUM(MAINMENU+1);
+		return ;		
+	}
+}
+void timerUpdataInfoplane(void *p_tmr, void *p_arg)
+{
+	structFaceInfo *info = (structFaceInfo *)p_arg;
+	updata_planeMenu(&g_node,info);
+}
+
 FACE_ENUM draw_planeMenu_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	register_key_event(info->id , main_menu_keyEvent, KEY_CANCEL);   //æ³¨å†ŒæŒ‰é”®
-
+	FACE_ENUM rec = faceNull;
+	register_key_event(info->id , planeMenu_key, KEY_CANCEL);   //æ³¨å†ŒæŒ‰é”®
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
+		draw_title();  //æ˜¾ç¤ºå¼€å¤?
 	}	
+	draw_title_data_menu("×öÆ½Ãæ",60,4);
 	setLocalId(-1);	
 	draw_menu(info);
+	OSTmrCreate(&timer,"updata",100,100,OS_OPT_TMR_PERIODIC ,timerUpdataInfoplane,info,&err); 
 	while(1)
-	{
+	{		
 		
-		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
-		{			
-			return (FACE_ENUM)g_currentFace->list->pro->id;
+		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);		
+		if((rec = getReturnFACE_ENUM()) < faceNull)
+		{
+			OSTmrDel(&timer,&err);
+			return rec;
 		}
 	}	
 }
-//åšæ–œé¢
+//×öĞ±Ãæ
+
+void xieMenu_key(int id,int event)
+{
+	if(event & KEY_CANCEL)
+	{			
+		setReturnFACE_ENUM(MAINMENU+1);
+		return ;		
+	}
+}
+void timerUpdataInfoxie(void *p_tmr, void *p_arg)
+{
+	structFaceInfo *info = (structFaceInfo *)p_arg;
+	updata_xieMenu(&g_node,info);
+}
+
 FACE_ENUM draw_xieMenu_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	register_key_event(info->id , main_menu_keyEvent, KEY_CANCEL);   //æ³¨å†ŒæŒ‰é”®
+	FACE_ENUM rec = faceNull;
+	register_key_event(info->id , xieMenu_key, KEY_CANCEL);   //æ³¨å†ŒæŒ‰é”®
 
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
+		draw_title();  //æ˜¾ç¤ºå¼€å¤?
 	}	
 	setLocalId(-1);	
+	draw_title_data_menu("×öĞ±Ãæ",60,4);
 	draw_menu(info);
+	OSTmrCreate(&timer,"updata",100,100,OS_OPT_TMR_PERIODIC ,timerUpdataInfoxie,info,&err); 
 	while(1)
-	{
-		
+	{			
 		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
-		{			
-			return (FACE_ENUM)g_currentFace->list->pro->id;
+		if((rec = getReturnFACE_ENUM()) < faceNull)
+		{
+			OSTmrDel(&timer,&err);
+			return rec;
 		}
 	}
 }
-//æµ‹é‡æ•°æ®
+//²âÁ¿Êı¾İ
+
+char ceDataTitleBuff[30] = {0};
+int ceDataIndex = 0;
+structCeData * ceData;
+structFaceInfo *ceInfo;
+void meauseData_key(int id,int event)
+{
+	if(event & KEY_CANCEL)
+	{	
+		g_ceDataFlash.startAdress = (uint32_t )ceDataStartAdress;
+		memset(ceDataTitleBuff,0,30);
+		setReturnFACE_ENUM(g_currentFace->list->pro->id);
+		free(ceData);
+		return ;		
+	}
+	if(event & KEY_ENTER)
+	{			
+		g_ceDataFlash.startAdress = ceDataStartAdress;
+		g_node.parcelData->area = ceData->area;
+		g_node.parcelData->averH = ceData->dhigh;
+		g_node.parcelData->EtherDis = ceData->tufl;
+		g_node.parcelData->maxH = ceData->high;
+		g_node.parcelData->minH = ceData->low;
+		g_node.parcelData->PeriMeter = ceData->zhouc;
+		g_node.Distance[0] = ceData->dis[0];
+		g_node.Distance[1] = ceData->dis[1];				
+		setReturnFACE_ENUM(g_currentFace->list->pro->id);
+		return ;		
+	}
+	if(event & KEY_LEFT)
+	{			
+		ceDataIndex --;
+		if(ceDataIndex < 0)
+		{
+			ceDataIndex = 0;
+		}
+		g_ceDataFlash.startAdress -= sizeof(structCeData);		
+	}
+	if(event & KEY_RIGHT)
+	{			
+		ceDataIndex ++;
+		ceDataIndex %= g_ceDataFlash.count;
+		g_ceDataFlash.startAdress += sizeof(structCeData);
+	}
+	sprintf(ceDataTitleBuff,"²âÁ¿Êı¾İ(%02d/%02d)",ceDataIndex,g_ceDataFlash.count);
+	draw_title_data_menu((u8 *)ceDataTitleBuff,50,1);
+	STMFLASH_ReadStruct(g_ceDataFlash.startAdress , ceData, sizeof(structCeData));
+	update_cedata(ceInfo,ceData);
+	draw_menu_data(ceInfo);
+}
+
 FACE_ENUM draw_meauseData_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	static int index = 0;
-	register_key_event(info->id , main_menu_keyEvent, KEY_TOP | KEY_BOTTON | KEY_CANCEL);	 //æ³¨å†ŒæŒ‰é”®
+	FACE_ENUM rec = faceNull;
+	register_key_event(info->id , meauseData_key, KEY_TOP | KEY_BOTTON | KEY_CANCEL);	 //æ³¨å†ŒæŒ‰é”®
 
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
+		draw_title(); 
 	}	
-	structCeData * data = (structCeData *)malloc(sizeof(structCeData));
+		
 	draw_line_y(3);
-	draw_menu_cedata(info, index,data );
+	draw_menu(info);
+	
+	ceData = (structCeData *)malloc(sizeof(structCeData));
+	ceInfo = info;
+
 	while(1)
 	{				
 		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
-		{			
-			return (FACE_ENUM)g_currentFace->list->pro->id;
+		if((rec = getReturnFACE_ENUM()) < faceNull)
+		{
+				return rec;
 		}
+
 	}
 }
-//è®¾ç½®å¹³é¢é«˜åº¦
-uchar array_setPlabHigh[][30] = {{"Meauaverhigh:"},{"currentHigh:"},{"plansethigh:"}};
-uchar setPlanHigh_title[50] = "dadsadsadsadsmvsvnsdvnnldfna";
-void draw_setPlaneHigh_num_menu(int index)
+//ÉèÖÃÆ½Ãæ¸ß¶È
+uchar array_setPlabHigh[][30] = {{"²âÁ¿Æ½¾ù¸ß¶È:"},{"µ±Ç°²ù¶·¸ß¶È:"},{"Æ½ÃæÉèÖÃ¸ß¶È:"}};
+uchar setPlanHigh_title[50] = "ÇëĞŞ¸ÄÆ½ÃæÉèÖÃ¸ß¶È£¬È»ºó°´È·ÈÏ¼ü";
+
+void initPlaneHighData(Inode *node)
 {
-	int x = 14*8;
-	int y = 7;
-	double num = 0.0;
-	for(int i = 0 ;i < 3; i ++)
-	{	
-		if(index == i)
-			draw_set_num_menu(num, 1,x,y);
-		else
-			draw_set_num_menu(num, 0,x,y);
-		y += 2;
-	}
+	node->aimH = node->nowH;
+}
+
+void setPlaneHigh_key(int id,int event)
+{
+	operation_key_change(3,PANELMENU,event,array_setPlabHigh);
 }
 FACE_ENUM draw_setPlaneHigh_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	int index = 0;
-	register_key_event(info->id , main_menu_keyEvent, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
+	FACE_ENUM rec = faceNull;
+	register_key_event(info->id , setPlaneHigh_key, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
 
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
+		draw_title();  //æ˜¾ç¤ºå¼€å¤?
 	}	
+	initPlaneHighData(node);
+	draw_title_data_menu("ÉèÖÃÆ½Ãæ¸ß¶È",60,4);
 	draw_set_menu(array_setPlabHigh,3);	
 	draw_set_low_title_menu(setPlanHigh_title,1,19);
+	clean_arrarNum();//Çå¿ÕÈ«¾ÖÊı×é
+	operation_index = 2;
+	setPlaneHigh_key(0,0);
+	g_arrNum[0] = node->parcelData->averH;
+	g_arrNum[1] = node->nowH;
+	g_arrNum[2] = node->aimH;
+	g_node.Distance[0] = node->lat;
+	g_node.Distance[1] = node->lot;
 	while(1)
-	{
-		draw_setPlaneHigh_num_menu(index);
+	{		
 		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
-		{			
-			return (FACE_ENUM)g_currentFace->list->pro->id;
-		}
-		if(getEndflag() & KEY_ENTER)
-		{
-			return PANELMENU;
-		}
-		if(getEndflag() & KEY_TOP)
-		{
-			index --;
-			if(index < 0)
-				index %= 3;
-		}
-		if(getEndflag() & KEY_BOTTON)
-		{
-			index ++;
-			if(index > 2)
-				index = 0;
-		}
-		
+		if((rec = getReturnFACE_ENUM()) < faceNull)
+		{		
+			node->parcelData->averH = g_arrNum[0];
+		 	node->aimH = g_arrNum[2];	
+			return rec;
+		}		
 	}
 }
 
 
 
-//è®¾ç½®æ–œé¢é«˜åº¦
-uchar array_setXieHigh[][30] = {{"Meauaverhigh:"},{"currentHigh:"}};
-uchar setXieHigh_title[50] = "dadsadsadsadsmvsvnsdvnnldfna";
-void draw_setXieHigh_num_menu(int index)
+//ÉèÖÃĞ±ÃæÆğµã¸ß¶È
+uchar array_setXieHigh[][30] = {{"²ù¶·ÏÖÔÚ¸ß¶È:"},{"Ğ±ÃæÆğµã¸ß¶È:"}};
+uchar setXieHigh_title[50] = "ÇëĞŞ¸ÄĞ±ÃæÆğµã¸ß¶È£¬È»ºó°´È·ÈÏ¼ü";
+void initXieStartData(Inode *node)
 {
-	int x = 14*8;
-	int y = 7;
-	double num = 0.0;
-	for(int i = 0 ;i < 2; i ++)
-	{	
-		if(index == i)
-			draw_set_num_menu(num, 1,x,y);
-		else
-			draw_set_num_menu(num, 0,x,y);
-		y += 2;
-	}
+	node->xieData->startH = node->nowH;
+}
+void setXieStartData(Inode *node)
+{
+	node->xieData->startH = node->nowH;
+}
+void setXieHigh_key(int id,int event)
+{
+	operation_key_change(2,SETXIEENDHIGH,event,array_setXieHigh);
 }
 FACE_ENUM draw_setXieHigh_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	int index = 0;
-	register_key_event(info->id , main_menu_keyEvent, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
+	FACE_ENUM rec = faceNull;
+	register_key_event(info->id , setXieHigh_key, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
 
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
-	}	
+		draw_title();  //æ˜¾ç¤ºå¼€å¤?
+	}	 	
+	draw_title_data_menu("ÉèÖÃĞ±Ãæ¸ß¶È",60,4);	
 	draw_set_menu(array_setXieHigh,2);	
 	draw_set_low_title_menu(setXieHigh_title,1,19);
+	operation_index = 1;
+	clean_arrarNum();	
+	setXieHigh_key(0,0);
+	g_arrNum[0] = node->nowH;
+	g_arrNum[1] = node->xieData->startH;
+	init_parcelSurvey();
+	g_node.Distance[0] = node->lat;
+	g_node.Distance[1] = node->lot;
 	while(1)
-	{
-		draw_setXieHigh_num_menu(index);
+	{		
 		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
-		{			
-			return (FACE_ENUM)g_currentFace->list->pro->id;
-		}
-		if(getEndflag() & KEY_ENTER)
+		if((rec = getReturnFACE_ENUM()) < faceNull)
 		{
-			return SETXIEENDHIGH;
-		}
-		if(getEndflag() & KEY_TOP)
-		{
-			index --;
-			if(index < 0)
-				index %= 2;
-		}
-		if(getEndflag() & KEY_BOTTON)
-		{
-			index ++;
-			if(index > 1)
-				index = 0;
-		}
-		
+			node->xieData->startH = g_arrNum[1];
+			return rec;
+		}		
 	}
 }
-//è®¾ç½®æ–œé¢ç»ˆç‚¹ 
-uchar array_setXieEndHigh[][30] = {{"Meauaverhigh:"},{"currentHigh:"},{"Meauaverhigh:"},{"Meauaverhigh:"},{"Meauaverhigh:"},{"Meauaverhigh:"},};
-uchar setXieEndHigh_title[50] = "dadsadsadsadsmvsvnsdvnnldfna";
-void draw_setXieEndHigh_num_menu(int index)
+//ÉèÖÃĞ±ÃæÖÕµã¸ß¶È
+uchar array_setXieEndHigh[][30] = {{"Ğ±ÃæÆğµã¸ß¶È:"},{"Ğ±ÃæÖÕµã¸ß¶È:"},{"Æğµãµ½ÖÕµã¸ß²î:"},{"Æğµãµ½ÖÕµã¾àÀë:"},{"Æğµãµ½ÖÕµãÆÂ¶È:"},{"Æğµãµ½ÖÕµã¶ÈÊı:"}};
+uchar setXieEndHigh_title[50] = "ÇëĞŞ¸ÄĞ±ÃæÖÕµã¸ß¶È£¬È»ºó°´È·ÈÏ¼ü";
+void setEndXieHigh_key(int id,int event)
 {
-	int x = 14*8;
-	int y = 7;
-	double num = 0.0;
-	for(int i = 0 ;i < 6; i ++)
-	{	
-		if(index == i)
-			draw_set_num_menu(num, 1,x,y);
-		else
-			draw_set_num_menu(num, 0,x,y);
-		y += 2;
-	}
+	operation_key_change(4, XIEMENU, event,array_setXieEndHigh);
 }
+
+void setxieEndData(Inode *node)
+{	
+	char buff[100] = {0};
+	set_xieMenu_data(node);
+	//Ğ±ÃæÆğµã¸ß¶È
+	g_arrNum[0] = node->xieData->startH;	
+	//Ğ±ÃæÖÕµã¸ß¶È	
+	g_arrNum[1] = node->nowH;
+	//Æğµãµ½ÖÕµã¸ß²î
+	g_arrNum[2] = node->xieData->endH - node->xieData->startH;
+	//Æğµãµ½ÖÕµã¾àÀë
+	g_arrNum[3] = GetDistance(node->Distance[0],node->Distance[1],node->lat, node->lot ); 
+	//ÆÂ¶È
+	g_arrNum[4] = atan2(g_arrNum[2],g_arrNum[3])*180/3.14159;	
+	//°Ù·Ö±È
+	g_arrNum[5] = g_arrNum[2]/g_arrNum[3];	
+
+	sprintf(buff,"%.1lf¶È",g_arrNum[4]);
+	draw_title_data_menu((u8 *)buff,g_currentFace->menu[4].x+5,g_currentFace->menu[4].y);	
+	memset(buff,0,sizeof(buff));
+	sprintf(buff,"%.1lf%",g_arrNum[5]);
+	draw_title_data_menu((u8 *)buff,g_currentFace->menu[5].x+5,g_currentFace->menu[5].y);
+	
+	setEndXieHigh_key(0,0);
+}
+double arrNowH[11] = {0};
+int arrNowHindex = 0;
+double getAverNowH(double *data,int len)
+{
+	double sum = 0;
+	for(int i = 0 ;i < len ; i++)
+	{
+		sum += data[i];
+	}
+	sum /= len;
+	return sum;
+}
+
+void timerUpdataInfosetEndXie(void *p_tmr, void *p_arg)
+{
+	if(g_node.speed < 0.1)
+	{
+		memset(arrNowH,0,11*8);
+		arrNowHindex = 0;
+	}
+	else
+	{
+		arrNowH[arrNowHindex++] = g_node.nowH;
+		if(arrNowHindex == 10)
+		{
+			g_node.nowH = getAverNowH(arrNowH,arrNowHindex);
+			setxieEndData(&g_node);		
+
+		}
+	}
+
+}
+
 FACE_ENUM draw_setEndXieHigh_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	int index = 0;
-	register_key_event(info->id , main_menu_keyEvent, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
+	FACE_ENUM rec = faceNull;
+	register_key_event(info->id , setEndXieHigh_key, KEY_ALL);   //æ³¨å†ŒæŒ‰é”®
 
 	if(info->ishead == 1)
 	{
-		draw_title();  //æ˜¾ç¤ºå¼€å¤´
-	}	
+		draw_title(); 
+	}		
+	
+	draw_title_data_menu("ÉèÖÃĞ±ÃæÖÕµã",60,4);
+	
 	draw_set_menu(array_setXieEndHigh,6);	
-	draw_set_low_title_menu(setXieEndHigh_title,1,19);
+	
+	draw_set_low_title_menu(setXieEndHigh_title,1,19);	
+
+	clean_arrarNum();
+	operation_index = 2;
+
+	setEndXieHigh_key(0,0);	
+
+	OSTmrCreate(&timer,"updata",100,100,OS_OPT_TMR_PERIODIC ,timerUpdataInfosetEndXie,info,&err); 
 	while(1)
 	{
-		draw_setXieEndHigh_num_menu(index);
-		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
-		{			
-			return (FACE_ENUM)g_currentFace->list->pro->id;
-		}
-		if(getEndflag() & KEY_ENTER)
+				
+		OSTimeDlyHMSM(0, 0, 1,30,OS_OPT_TIME_HMSM_STRICT,&err);
+		if((rec = getReturnFACE_ENUM()) < faceNull)
 		{
-			return XIEMENU;
+			node->xieData->endH = g_arrNum[1];
+			
+			OSTmrDel(&timer,&err);
+			return rec;
 		}
-		if(getEndflag() & KEY_TOP)
-		{
-			index --;
-			if(index < 0)
-				index %= 6;
-		}
-		if(getEndflag() & KEY_BOTTON)
-		{
-			index ++;
-			if(index > 5)
-				index = 0;
-		}
-		
 	}
 }
 
 
 
-//å«æ˜Ÿä¿¡å·
+//ÎÀĞÇÊı¾İ
 
 void draw_setStat_num_menu(int *statSingArray)
 {
@@ -342,23 +709,31 @@ void draw_setStat_num_menu(int *statSingArray)
 		y += 2;
 	}
 }
+
+void setStat_key(int id,int evnet)
+{
+	if(evnet & KEY_CANCEL)
+	{			
+		setReturnFACE_ENUM(g_currentFace->list->pro->id);	
+	}
+}
 FACE_ENUM draw_setStat_face(Inode *node, structFaceInfo *info)
 {
 	OS_ERR err;
-	int index;
+	FACE_ENUM rec = faceNull;	
 	int statSingArray[12*3+1] = {5};
-	register_key_event(info->id , main_menu_keyEvent, KEY_CANCEL);   //æ³¨å†ŒæŒ‰é”®
-	
+	register_key_event(info->id , setStat_key, KEY_CANCEL);   //æ³¨å†ŒæŒ‰é”®
+
 	draw_StatTitle_menu(12,12,12);
 	draw_line_y(3);
+	draw_setStat_num_menu(statSingArray);
 	while(1)
-	{
-		draw_setStat_num_menu(statSingArray);
-		OSTimeDlyHMSM(0, 0,1,30,OS_OPT_TIME_HMSM_STRICT,&err);
-		if(getEndflag() & KEY_CANCEL)
-		{			
-			return (FACE_ENUM)g_currentFace->list->pro->id;
-		}		
+	{		
+		OSTimeDlyHMSM(0, 0,0,30,OS_OPT_TIME_HMSM_STRICT,&err);
+		if((rec = getReturnFACE_ENUM()) < faceNull)
+		{
+				return rec;
+		}
 	}
 
 }

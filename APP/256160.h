@@ -34,6 +34,7 @@ extern void lcd_address(int x,int y,int x_total,int y_total);
 extern void disp_16x16_num(int x,int y , uchar dp[][16],int len,int flag);
 extern void disp_8x16_num(int x, int y, uchar *dp,int flag);
 
+extern void disp_clean(int x,int y,int len,int count);
 
 extern void clear_screen(void);
 

@@ -1,6 +1,8 @@
 #include "256160.h"
 #include "chinese_code.h"
 #include "commom.h"
+#include "string.h"
+
 
 static int currentX = 1;
 static int currentY = 1;
@@ -67,8 +69,8 @@ void setXLen_16_ZH()
 }
 void disp_8x16_num(int x, int y, uchar *dp,int flag)
 {
-	setXLen_8_char();	  //设置成字符模式
-	disp_clean(x,y,1,2);  //清除一个空格空间
+	setXLen_8_char();	  //设置成字符模�?
+	disp_clean(x,y,1,2);  //清除一个空格空�?
 	setXLen_16_ZH();	  //还原
 
 	lcd_address(x,y,CHAR_COUNT,2);
@@ -122,11 +124,11 @@ void setIndex()
 int getZhIndex(unsigned char *data,int flag)
 {
 	if(flag == 1)
-	{//再字库里面查找
+	{//再字库里面查�?
 		return (94*(data[0] - 0xa1) +(data[1]-0xa1));
 	}
 	if(flag == 0)
-	{//再字模里面查找
+	{//再字模里面查�?
 		
 	}
 	return 1;
@@ -193,15 +195,21 @@ int fputc(int ch, FILE *f)
 }
 
 
+//menu == 0
+//
+//
+//
+//
 FACE_ENUM Draw_face(int index)
 {
-	FACE_ENUM menu = faceNull;
+	FACE_ENUM menu = faceNull;	
 	if(g_arrayface == &g_headFace)
 	{
 		index = MAINMENU;
 	}
 	if(index == faceNull)
-	{//后退到上级
+	{//后退到上�?
+		clear_screen();
 		menu = g_currentFace->func(&g_node,g_currentFace);		
 		g_currentFace->data = NULL;
 		g_currentFace->list->next = NULL;
@@ -210,14 +218,19 @@ FACE_ENUM Draw_face(int index)
 	else
 	{//进入某个界面
 		g_currentFace->list->next = &g_arrayface[index];
-		g_arrayface[index].list->pro = g_currentFace;
+		if(g_currentFace->id != g_arrayface[index].id )
+		{
+			g_arrayface[index].list->pro = g_currentFace;
+		}
 		g_currentFace = &g_arrayface[index];
-
+ 		clear_screen();
 		menu = g_currentFace->func(&g_node,g_currentFace);
-
-		g_currentFace->data = NULL;
-		g_currentFace->list->next = NULL;
-		g_currentFace = g_currentFace->list->pro;	
+		if(menu == g_currentFace->list->pro->id -1)
+		{
+			g_currentFace->data = NULL;
+			g_currentFace->list->next = NULL;
+			g_currentFace = g_currentFace->list->pro;
+		}			
 	}
 	
 	return menu;
@@ -248,5 +261,86 @@ void draw_line_stat_sign(int stren)
 		}
 	}
 }
+volatile FLASH_Status wxcFLASHStatus = FLASH_COMPLETE;
+
+void Readflash(uint32_t Address ,double *getdata)
+{	
+	memcpy(getdata,(uint32_t *)Address,8);
+}
+
+void Writeflash(uint32_t Address,  double *data)
+{
+
+	uint32_t ddd[3] = {0};
+	memcpy(ddd,data,8);
+	if(wxcFLASHStatus == FLASH_COMPLETE)
+	{
+		wxcFLASHStatus = FLASH_ProgramWord(Address, ddd[0]);
+		wxcFLASHStatus = FLASH_ProgramWord(Address+4, ddd[1]);
+		
+	}
+}
+
+
+void writeFlashStruct()
+{
+	FLASH_Unlock();
+	FLASH_ClearFlag(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPRTERR); 
+	wxcFLASHStatus = FLASH_ErasePage(StartAdress);
+	int i =0;
+	i+=8;
+	Writeflash(StartAdress+i, &g_initFlashStruct.antlocal);
+	i+=8;
+	Writeflash(StartAdress+i, &g_initFlashStruct.areaunit);
+	i+=8;	
+	Writeflash(StartAdress+i, &g_initFlashStruct.bucketwidgth);
+	i+=8;
+	Writeflash(StartAdress+i, &g_initFlashStruct.channel);
+	i+=8;	
+	Writeflash(StartAdress+i, &g_initFlashStruct.dataAdress);
+	i+=8;	
+	Writeflash(StartAdress+i, &g_initFlashStruct.dataCount);
+	i+=8;
+	Writeflash(StartAdress+i, &g_initFlashStruct.langselect);
+	i+=8;	
+	Writeflash(StartAdress+i, &g_initFlashStruct.lengthunit);
+	i+=8;	
+	Writeflash(StartAdress+i, &g_initFlashStruct.timesetlocal);
+	i+=8;	
+	Writeflash(StartAdress+i, &g_initFlashStruct.timesetXia);	
+	i+=8;	
+	Writeflash(StartAdress+i, &g_initFlashStruct.volumeunit);
+
+	FLASH_Lock();	
+}
+void readFlashStruct()
+{
+
+	int i = 0;
+	Readflash(StartAdress+i, &g_initFlashStruct.antlocal);
+	i+=8;
+	Readflash(StartAdress+i, &g_initFlashStruct.areaunit);
+	i+=8;	
+	Readflash(StartAdress+i, &g_initFlashStruct.bucketwidgth);
+	i+=8;
+	Readflash(StartAdress+i, &g_initFlashStruct.channel);
+	i+=8;	
+	Readflash(StartAdress+i, &g_initFlashStruct.dataAdress);
+	i+=8;	
+	Readflash(StartAdress+i, &g_initFlashStruct.dataCount);
+	i+=8;	
+	Readflash(StartAdress+i, &g_initFlashStruct.langselect);
+	i+=8;	
+	Readflash(StartAdress+i, &g_initFlashStruct.lengthunit);
+	i+=8;	
+	Readflash(StartAdress+i, &g_initFlashStruct.timesetlocal);
+	i+=8;	
+	Readflash(StartAdress+i, &g_initFlashStruct.timesetXia);	
+	i+=8;	
+	Readflash(StartAdress+i, &g_initFlashStruct.volumeunit);	
+	i+=8;		
+
+}
+
 
 

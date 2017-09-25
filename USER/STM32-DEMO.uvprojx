@@ -133,11 +133,11 @@
             <RunIndependent>0</RunIndependent>
             <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
-            <DriverSelection>4098</DriverSelection>
+            <DriverSelection>4099</DriverSelection>
           </Flash1>
           <bUseTDR>1</bUseTDR>
           <Flash2>Segger\JL2CM3.dll</Flash2>
-          <Flash3></Flash3>
+          <Flash3>"" ()</Flash3>
           <Flash4></Flash4>
           <pFcarmOut></pFcarmOut>
           <pFcarmGrp></pFcarmGrp>
@@ -335,7 +335,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER, STM32F10X_HD,STM32_3_5</Define>
               <Undefine></Undefine>
-              <IncludePath>..\CMSIS;..\USER;..\FWlib\inc;..\FWlib\src;..\APP;..\BSP;..\uCOS-III\Cfg;..\uCOS-III\Ports;..\uCOS-III\Source;..\uCOS-III\uC-CPU;..\uCOS-III\uC-LIB;..\FACE;..\Font;..\HARDWORK</IncludePath>
+              <IncludePath>..\CMSIS;..\USER;..\FWlib\inc;..\FWlib\src;..\APP;..\BSP;..\uCOS-III\Cfg;..\uCOS-III\Ports;..\uCOS-III\Source;..\uCOS-III\uC-CPU;..\uCOS-III\uC-LIB;..\FACE;..\Font;..\HARDWORK;..\calcu</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -689,6 +689,11 @@
               <FileType>1</FileType>
               <FilePath>..\HARDWORK\usrtConfig.c</FilePath>
             </File>
+            <File>
+              <FileName>flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\HARDWORK\flash.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -714,6 +719,11 @@
               <FileType>1</FileType>
               <FilePath>..\FACE\drawSysSet.c</FilePath>
             </File>
+            <File>
+              <FileName>calcuFace.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\FACE\calcuFace.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -723,6 +733,26 @@
               <FileName>keyevent.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\APP\keyevent.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>calcu</GroupName>
+          <Files>
+            <File>
+              <FileName>Coordinate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\calcu\Coordinate.c</FilePath>
+            </File>
+            <File>
+              <FileName>MeterArea.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\calcu\MeterArea.c</FilePath>
+            </File>
+            <File>
+              <FileName>minmea.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\calcu\minmea.c</FilePath>
             </File>
           </Files>
         </Group>

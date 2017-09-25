@@ -43,7 +43,6 @@ int main(void)
                  (OS_ERR     *)&err);						//·µ»ØÖµ
 	
     OSStart(&err);  
-  
-
+ 
 }
 /******************* (C) COPYRIGHT 2012 WildFire Team *****END OF FILE************/

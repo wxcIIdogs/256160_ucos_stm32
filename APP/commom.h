@@ -1,9 +1,10 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
-#include  "stm32f10x.h"
+#include "stm32f10x.h"
 #include "stdio.h"
 #include "string.h"
 #include "stdlib.h"
+#include "minmea.h"
 #define BACK_WHITE   1
 #define BACK_BLACK   0
 
@@ -30,20 +31,98 @@ typedef enum
 }enum_KEY_EVENT;
 
 
-//flashçš„æ•°æ®
+//flashçš„æ•°æ?
 typedef struct flash_info
 {
-	void *data;
+
+	//¶ÈÁ¿µ¥Î»
+	double areaunit;
+	double lengthunit;
+	double volumeunit;
+	//µçÌ¨ÆµµÀ
+	double MaxChannel;
+	double channel;
+	double MinChannel;
+	//²ù¶·¿í¶È
+	double bucketwidgth;//BUCKETWIDGTH
+	
+	double antlocal;
+	
+	double timesetlocal;
+	
+	double timesetXia;
+	
+	double langselect;
+	
+	double dataCount;
+	
+	double dataAdress;
+	
 }FlashInfo;
 
-//å­˜æ”¾ä¸€äº›ç³»ç»Ÿæ•°æ®
+typedef struct plane
+{	
+
+	int direc;	
+}structPlane;
+
+typedef struct xieMenu
+{
+	double startH;
+	double endH;
+	double stat2endDiffH;
+	double stat2endDiffdis;
+	double stat2endDiffpitch;	
+	int direc;
+}xiePlan;
+typedef struct parcelsurvey
+{	
+	double area;
+	double maxH;
+	double averH;
+	double minH;
+	double PeriMeter;		
+	double EtherDis;	
+}PareclSurvey;
+//å­˜æ”¾ä¸€äº›ç³»ç»Ÿæ•°æ?
+
+
+struct nodenmea_time {
+    int hours;
+    int minutes;
+    int seconds;
+    int microseconds;
+};
+struct nodenmea_date {
+    int day;
+    int month;
+    int year;
+};
+
 typedef struct inode
 {
-	long time;
+	struct nodenmea_time time;
+	struct nodenmea_date date;
 	int stat;
 	int delayTime;
 	int Channel;
-	int fixMode;	
+	int fixMode;
+	double lat;
+	double lot;
+	double nowH;
+	double aimH;
+	double Distance[2];
+	double speed;
+	double diffH;
+	int action;
+	int workMode;
+	int autoMode;
+	int dataType;	
+	int isConnect;
+	FlashInfo *flashData;
+	struct parcelsurvey *parcelData;
+	structPlane *PlaneData;
+	xiePlan *xieData; 
 	void *data;	
 }Inode;
 
@@ -53,12 +132,12 @@ typedef struct list_pro
 	struct face_info *next;
 }*list_t;
 
-//èœå•çš„åˆ—è¡¨
+//èœå•çš„åˆ—è¡?
 typedef struct _menu
 {
 	int id;
 	char * title;
-	char type;
+	char data[30];
 	double num;
 	char x;
 	char y;
@@ -67,6 +146,7 @@ typedef struct _menu
 
 typedef enum 
 {
+	none = -1,
 	MAINMENU = 0,
 	SYSSETMENU,
 	PARCELMENU,
@@ -90,7 +170,7 @@ typedef enum
 }FACE_ENUM;
 
 
-//ç•Œé¢ä¿¡æ¯ï¼Œ ç”¨æ¥ç»´æŠ¤ä¸€ä¸ªrootå’Œä¸€ä¸ªå½“å‰èŠ‚ç‚¹
+//ç•Œé¢ä¿¡æ¯ï¼?ç”¨æ¥ç»´æŠ¤ä¸€ä¸ªrootå’Œä¸€ä¸ªå½“å‰èŠ‚ç‚?
 typedef FACE_ENUM (*facefunc)(struct inode *info , struct face_info *node);
 typedef struct face_info
 {
@@ -104,13 +184,13 @@ typedef struct face_info
 	void *data;
 }structFaceInfo;
 
-
+//²âÁ¿Êı¾İ´æ´¢½á¹¹Ìå
 typedef struct _structCeData
 {
 	double id;
 	double zhouc;
 	double dhigh;
-	
+	double area;
 	int year;
 	int mon;	
 	int day;
@@ -118,10 +198,52 @@ typedef struct _structCeData
 	int min;
 	
 	double tufl;
-	double dis;
+	double dis[2];
 	double high;
 	double low;
 }structCeData;
+#define ceDataStartAdress  0x08060800
+#define ceDataStartAdressInfo  0x08060000
+typedef struct _structCeDatainfo
+{
+	uint32_t startAdress;
+	uint32_t count;
+}structCeDataInfo;
+
+
+typedef enum 
+{
+	BU_NO_CONTROL = 0,
+	BU_CANCEL_CONTROL = 1,
+	BU_DOWN_CONTROL = 2,
+	BU_RAISE_CONTROL = 3,
+}enumBUCK_STATUS;
+
+typedef enum
+{
+	HAND_MODE = 0,
+	AUTO_MODE = 1,
+	AUTO_HAND_MODE = 2,
+}enumAUTO_MODE;
+typedef enum
+{
+	CLOSE_WORK = 0,
+	SETUP_WORK = 1,
+	WORKING = 2,
+}enumWorkMode;
+
+typedef enum
+{
+	VERSION = 0,
+	RADIO = 1,
+	CONTROL = 2,
+	MOED = 3,
+	STATUS = 4,
+	GRADER = 5,
+	MACH_OK = 6,
+	MACH_ERROR = 7,
+	MACH_UNLINK = 8,
+}enumMACH_TYPE;
 
 
 
@@ -130,13 +252,40 @@ extern Inode g_node;
 extern FlashInfo g_initFlashStruct;
 extern structFaceInfo *g_currentFace;
 extern structFaceInfo g_headFace;
+extern structCeDataInfo g_ceDataFlash;
+
+//²âÁ¿Êı¾İ
+extern u8 g_area_unit[6];
+extern u8 g_len_unit[6];
+extern u8 g_tiji_unit[6];
+
+extern double g_area_unit_num ;
+extern double g_len_unit_num;
+extern double g_volue_unit_num;
+/*****************************/
+
+
+
+
+#define StartAdress   0x08058000
+extern volatile FLASH_Status wxcFLASHStatus;
+
+//
+extern GPS_DATA gps_data;
+
+
+
 
 extern void main_menu_keyEvent(int id,int event);
 extern void draw_menu(structFaceInfo *info);
+extern void draw_menu_data(structFaceInfo *info);
+
 extern void draw_menu_cedata(structFaceInfo *info,int index,structCeData *data);
 extern int getLocalId(void);
 extern void setMenuLen(int len);
 extern int getEndflag(void);
+extern int getEvent(void);
+
 extern void draw_line_y(int y);
 
 extern void draw_title(void );
@@ -145,10 +294,22 @@ extern FACE_ENUM Draw_face(int index);
 extern void setLocalId(int id);
 
 extern void draw_set_menu(u8 temp[][30],int len);
-extern void draw_set_num_menu(double num,int flag ,int x,int y);
+extern void draw_set_num_menu(char * num,int flag ,int x,int y,int addindex);
+extern void draw_show_num_menu(int index,char num[][10],int addindex,unsigned char arrSet[][30],int len);
+
+
 extern void draw_set_low_title_menu(u8 *title,int x,int y);
 extern void draw_StatTitle_menu(int gps,int beid,int glonass);
 extern void draw_stat_stren_num_menu(int index,int len,int x,int y);
+extern void draw_title_data_menu(u8 *data,int x,int y);
+extern void setReturnFACE_ENUM(int id);
+extern FACE_ENUM getReturnFACE_ENUM(void);
+extern void draw_clean_show(int y);
+extern void readFlashStruct(void);
+extern void writeFlashStruct(void);
+extern void incodeing_return_ok(void);
+extern void setUnit(void);
+
 
 #endif
 

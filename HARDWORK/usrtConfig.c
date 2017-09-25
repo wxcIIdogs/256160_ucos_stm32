@@ -134,7 +134,6 @@ void NVIC_Configuration2(void)
  * 调用  ：由printf调用
  */
 
-
 void sendUsartDate(char *date,int size)
 {
 	for(int i = 0; i<size; i++)

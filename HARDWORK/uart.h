@@ -59,27 +59,27 @@
 typedef void (*FuncPtr_t)(void);
 typedef void (*FuncPtrU8_t)(uint8_t);
 
-#define DISABLE_INT()                                { __set_PRIMASK(1); }	/* 关中断 */
+#define DISABLE_INT()                                { __set_PRIMASK(1); }	/* 关中�?*/
 #define ENABLE_INT()                                 { __set_PRIMASK(0); }	/* 开中断 */
 
-/* 串口设备结构体 */
+/* 串口设备结构�?*/
 typedef struct
 {
     UART_HandleTypeDef *huart; /* 串口设备指针 */
     uint8_t *pTxBuf;           /* 发送缓冲区 */
-    uint8_t *pRxBuf;           /* 接收缓冲区 */
+    uint8_t *pRxBuf;           /* 接收缓冲�?*/
     uint16_t usTxBufSize;      /* 发送缓冲区大小 */
-    uint16_t usRxBufSize;      /* 接收缓冲区大小 */
-    __IO uint16_t usTxWrite;   /* 发送缓冲区写指针 */
-    __IO uint16_t usTxRead;    /* 发送缓冲区读指针 */
+    uint16_t usRxBufSize;      /* 接收缓冲区大�?*/
+    __IO uint16_t usTxWrite;   /* 发送缓冲区写指�?*/
+    __IO uint16_t usTxRead;    /* 发送缓冲区读指�?*/
     __IO uint16_t usTxCount;   /* 等待发送的数据个数 */
     __IO uint16_t usRxWrite;   /* 接收缓冲区写指针 */
     __IO uint16_t usRxRead;    /* 接收缓冲区读指针 */
     __IO uint16_t usRxCount;   /* 还未读取的新数据个数 */
     FuncPtr_t SendBeforFunc;   /* 开始发送之前的回调函数指针（主要用于RS485切换到发送模式） */
-    FuncPtr_t SendOverFunc;    /* 发送完毕的回调函数指针（主要用于RS485将发送模式切换为接收模式） */
-    FuncPtrU8_t ReciveNewFunc; /* 串口收到数据的回调函数指针 */
-    uint8_t initDoneFlag;      /* 初始化完成标志 */
+    FuncPtr_t SendOverFunc;    /* 发送完毕的回调函数指针（主要用于RS485将发送模式切换为接收模式�?*/
+    FuncPtrU8_t ReciveNewFunc; /* 串口收到数据的回调函数指�?*/
+    uint8_t initDoneFlag;      /* 初始化完成标�?*/
 } UART_FIFO_Typedef_t;
 
 extern HAL_StatusTypeDef UartSendByte(UART_HandleTypeDef *huart, uint8_t ucByte);

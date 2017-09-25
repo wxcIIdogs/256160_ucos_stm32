@@ -11,6 +11,7 @@
 **********************************************************************************/
 #include "includes.h"
 #include "commom.h"
+#include "calcuFace.h"
 extern	OS_TCB	StartUp_TCB;						//任务堆栈
 
 static  OS_TCB	keyScan;		   					//定义任务控制块
@@ -107,12 +108,12 @@ void Task_key(void *p_arg)
 {
 	OS_ERR err;
     (void)p_arg;                	
-	
+	int key = 0;
      while (1)
     {
-		scanKeyEvent();
-        OSTimeDlyHMSM(0, 0,0,50,OS_OPT_TIME_HMSM_STRICT,&err); 
-				      
+			key = scanKeyEvent();			
+			OSTimeDlyHMSM(0, 0,0,50,OS_OPT_TIME_HMSM_STRICT,&err); 		
+			setKeyEvent(key);			
     }
 }
 
@@ -125,11 +126,14 @@ void Task_show(void *p_arg)
     {  
 	    OSSemPend(&uartSemEvent,100,OS_OPT_PEND_BLOCKING,0,&err);//wait 100ms
 	   	if(err == OS_ERR_TIMEOUT)
-	   	{ //娌℃湁绛夊埌鏁版嵁
-	   		
+	   	{ //等待超时	   		
+				OSTimeDlyHMSM(0, 0,0,60,OS_OPT_TIME_HMSM_STRICT,&err);
+				continue;
 	   	}
 	    updateInfoData();
-      OSTimeDlyHMSM(0, 0,0,60,OS_OPT_TIME_HMSM_STRICT,&err);
+	    OSTimeDlyHMSM(0, 0,0,500,OS_OPT_TIME_HMSM_STRICT,&err);
+			if(g_currentFace->ishead)
+      		draw_title();       
     }
 }
 
@@ -144,26 +148,30 @@ void Task_show(void *p_arg)
 void Task_uart(void *p_arg)
 {
 	OS_ERR err;
- (void)p_arg;      
+	(void)p_arg;      
 	u8 ch = 0;
     while (1)
     {	 	    
 	    while(FIFO_UartReadByte(&uart_t,&ch) == HAL_OK)
-			{
-				callback_rev_data(ch);
-				OSTimeDlyHMSM(0, 0,0,1,OS_OPT_TIME_HMSM_STRICT,&err);
-			}
-			OSTimeDlyHMSM(0, 0,0,10,OS_OPT_TIME_HMSM_STRICT,&err);
+		{
+			callback_rev_data(ch);
+			OSTimeDlyHMSM(0, 0,0,1,OS_OPT_TIME_HMSM_STRICT,&err);
+		}
+		OSTimeDlyHMSM(0, 0,0,20,OS_OPT_TIME_HMSM_STRICT,&err);
+		if(!g_node.isConnect)
+		{
+			char buff[100];
+			sprintf(buff,"$ICEGPS,CONNECT,1");
+			sendIcegpsData(buff);
+		}
     }
 }
-
-
 void Task_face(void *p_arg)
 {
 	OS_ERR err;
  	(void)p_arg;      
 	FACE_ENUM index;
-	index = Draw_face(ABOUT);
+	index = Draw_face(MAINMENU);
 	while (1)
 	{	 	        	    
 		index = Draw_face(index);    	

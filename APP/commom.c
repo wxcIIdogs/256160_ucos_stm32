@@ -1,5 +1,6 @@
 #include "commom.h"
 #include "256160.h"
+#include "calcuFace.h"
 static struct list_pro list = {0};
 
 structFaceInfo g_headFace = {
@@ -10,12 +11,17 @@ structFaceInfo g_headFace = {
 structFaceInfo *g_currentFace = &g_headFace;
 FlashInfo g_initFlashStruct = {0};
 Inode g_node = {0};
+structCeDataInfo g_ceDataFlash={0};
+
+const char wxcbuff[2048]          __attribute__((at(StartAdress)))   = {0};
+const char wxcCebuff[2048]          __attribute__((at(ceDataStartAdressInfo)))   = {0};
+
 
 
 static int isEnd = 0;
 static int localId = 0;
 static int menuLen = 0;
-
+static int g_event = 0;
 int getLocalId()
 {
 	return localId;
@@ -30,7 +36,15 @@ void setMenuLen(int len)
 }
 int getEndflag()
 {
-	return isEnd;
+	int temp = isEnd;	
+	isEnd = 0;
+	return temp;
+}
+int getEvent()
+{
+	int event = g_event;
+	g_event = 0;
+	return event;
 }
 void draw_menu(structFaceInfo *info)
 {
@@ -38,63 +52,50 @@ void draw_menu(structFaceInfo *info)
 	menuLen = info->len;
 	for(int i = 0 ; i < info->len ;i++)
 	{
-		setBackColor(BACK_WHITE);
+		setCurrentIndex( menu->x , menu->y);
+		printf("%d.",i+1);
 		if(i == localId)
 		{
 			setBackColor(BACK_BLACK);
 		}
-		setCurrentIndex( menu->x , menu->y);
-		printf(menu->title,menu->type,menu->num );
+		printf(menu->title);
 		menu++;
+		setBackColor(BACK_WHITE);
 	}
 }
-void draw_menu_cedata(structFaceInfo *info,int index,structCeData *data)
+void draw_menu_data(structFaceInfo *info)
 {
 	structMenu *menu = info->menu;
-	menuLen = info->len;
 	for(int i = 0 ; i < info->len ;i++)
 	{
-		setCurrentIndex( menu->x , menu->y);
-		if(i == 4)
-		{
-			char print[100] = {0};			
-			sprintf(print,"%s%04d-%02d-%02d %02d:%02d",menu->title,data->year,data->mon,data->day,data->hour,data->min );
-			printf("%s",print);
-			
-		}else
-		if(i == 7)
-		{
-			char print[100] = {0};
-			sprintf(print,"%s%.2lf/%.2lf",menu->title,data->high,data->low);
-			printf("%s",print);
-		}
-		else
-		{
-			menu->num = data->id;			
-			printf(menu->title,menu->type,menu->num );
-		}
+		setCurrentIndex( menu->x+strlen(menu->title)*8+5 , menu->y);	
+		printf("%s",menu->data);
 		menu++;
 	}
 }
-
 void main_menu_keyEvent(int id,int event)
 {
+	g_event = event;
 	switch(event & KEY_ALL)
 	{
 		case KEY_ENTER:
 			isEnd &= KEY_ENTER;
 			break;
-		case KEY_TOP:
+		case KEY_TOP: 
+			isEnd &= KEY_TOP;
 			localId --;
 			break;
 		case KEY_BOTTON:
+			isEnd &= KEY_BOTTON;
 			localId ++;
 			break;
 		case KEY_LEFT:
-			localId -= 3;
+			isEnd &= KEY_LEFT;
+			localId -= (menuLen+1)/2;
 			break;
 		case KEY_RIGHT:
-			localId += 3;
+			isEnd &= KEY_RIGHT;
+			localId += (menuLen+1)/2;
 			break;
 		case KEY_CANCEL:
 			isEnd &= KEY_CANCEL;
@@ -107,7 +108,8 @@ void main_menu_keyEvent(int id,int event)
 	{
 		localId = menuLen -1;
 	}
-	localId %= menuLen;		
+	localId %= menuLen;
+	//sendmem
 }
 
 
@@ -131,8 +133,8 @@ void _draw_title()
 
 	x += 38;
 	setCurrentIndex(x,y);
-	int hou = (localNote.time/3600)%24;
-	int min = (localNote.time/60)%60;
+	int hou = localNote.time.hours;
+	int min = localNote.time.minutes;
 	printf("%02d:%02d",hou,min);
 
 	x += 48;
@@ -167,18 +169,45 @@ void draw_set_menu(u8 temp[][30],int len)
 	}
 
 }
-void draw_set_num_menu(double num,int flag ,int x,int y)
+void draw_show_num_menu(int index,char num[][10],int addindex,uchar arrSet[][30],int len)
+{
+	int x = 0;
+	int y = 7;
+	for(int i = 0 ;i < len; i ++)
+	{	
+		x = strlen((char *)arrSet[i])*8 + 5;
+		if(index == i)
+			draw_set_num_menu(num[i], 1,x,y,addindex);
+		else
+			draw_set_num_menu(num[i], 0,x,y,addindex);
+		y += 2;
+	}
+}
+
+void draw_set_num_menu(char * num,int flag ,int x,int y,int addindex)
 {
 	setCurrentIndex(x,y);
+	disp_clean(x,y,7,2);
 	if(flag == 1)
 	{
-		printf("¡¾%.3lfm¡¿",num);	
+		printf("¡¾");
+		for(int i = 0;i < strlen(num) ; i++)		
+		{
+			if(addindex == i)
+			{
+				setBackColor(BACK_BLACK);
+			}
+			printf("%c",num[i]);
+			setBackColor(BACK_WHITE);
+		}
+		printf("¡¿");
 	}
 	else
 	{
-		printf("%.3lfm",num);	
+		printf("%s",num);	
 	}
 }
+
 void draw_set_low_title_menu(u8 *title,int x,int y)
 {
 	setCurrentIndex(x,y);
@@ -204,5 +233,37 @@ void draw_stat_stren_num_menu(int index,int len,int x,int y)
 	printf("%02d",index);
 	draw_line_stat_sign(len);
 }
+void draw_title_data_menu(u8 *data,int x,int y)
+{
+	setCurrentIndex(x,y);
+	printf("%s",data);
+}
 
+FACE_ENUM g_return_FACE_ENUM = faceNull;
+void setReturnFACE_ENUM(int id)
+{
+	if(g_return_FACE_ENUM == faceNull)
+	{
+		g_return_FACE_ENUM = (FACE_ENUM)(id -1);
+	}
+}
+FACE_ENUM getReturnFACE_ENUM()
+{
+	FACE_ENUM temp = g_return_FACE_ENUM; 
+	g_return_FACE_ENUM = faceNull;
+	return temp;
+}
+
+
+void draw_clean_show(int y)
+{
+	disp_clean(1,y,16,21-y);
+}
+
+void incodeing_return_ok()
+{
+	char buff[100];
+	sprintf(buff,"$ICEGPS,OK");
+	sendIcegpsData(buff);
+}
 

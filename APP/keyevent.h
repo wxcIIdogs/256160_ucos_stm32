@@ -13,6 +13,8 @@ typedef struct key_event_t
 	struct key_event_t *next;
 }*struct_key_event;
 
-extern void scanKeyEvent(void);
+extern int scanKeyEvent(void);
+extern void setKeyEvent(int key);
+extern void main_menu_keyEvent(int id,int event);
 
 

@@ -52,12 +52,12 @@
 																PCout(((__X__) & 0x04),GPIO_Pin_12);\
 																PDout(((__X__) & 0x02),GPIO_Pin_2);\
 																PBout(((__X__) & 0x01),GPIO_Pin_3)
-#define GETKEYEVENT     PBin(GPIO_Pin_14) << 6 |    \
-												PBin(GPIO_Pin_15) << 5 |    \
-												PCin(GPIO_Pin_6) << 4 |		\
-												PCin(GPIO_Pin_7) << 3 |		\
-												PCin(GPIO_Pin_8) << 2 |		\
-												PCin(GPIO_Pin_9) << 1
+#define GETKEYEVENT     !PBin(GPIO_Pin_14) << 5 |    \
+												!PBin(GPIO_Pin_15) << 4 |    \
+												!PCin(GPIO_Pin_6) << 3 |		\
+												!PCin(GPIO_Pin_7) << 2 |		\
+												!PCin(GPIO_Pin_8) << 1 |		\
+												!PCin(GPIO_Pin_9) << 0
 
 void LED_GPIO_Config(void);
 

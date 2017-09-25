@@ -45,12 +45,12 @@ void LED_GPIO_Config(void)
 	GPIO_ResetBits(GPIOC,GPIO_InitStructure.GPIO_Pin);
 	
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 |GPIO_Pin_7 |GPIO_Pin_8 |GPIO_Pin_9 ;	
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD ;       
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU ;       
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14 |GPIO_Pin_15  ;	
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD ;       
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU ;       
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
 	
